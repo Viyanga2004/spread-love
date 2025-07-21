@@ -1,572 +1,962 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exclusive Offers | Personalized Recommendations</title>
-  <meta name="description" content="Discover personalized offers tailored for your location and device">
-  <style>
-    :root {
-      --primary: #4361ee;
-      --primary-dark: #3a56d4;
-      --secondary: #3f37c9;
-      --success: #4cc9f0;
-      --danger: #f72585;
-      --warning: #f8961e;
-      --light: #f8f9fa;
-      --dark: #212529;
-      --gray: #6c757d;
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      line-height: 1.6;
-      color: var(--dark);
-      padding: 20px;
-    }
-    
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 500px;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .hidden { 
-      display: none !important; 
-    }
-    
-    h1, h2, h3 {
-      color: var(--dark);
-      margin-bottom: 1rem;
-      line-height: 1.3;
-    }
-    
-    h1 { font-size: 1.8rem; }
-    h2 { font-size: 1.5rem; }
-    h3 { font-size: 1.2rem; }
-    
-    p {
-      margin-bottom: 1rem;
-      color: var(--gray);
-    }
-    
-    .loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-      text-align: center;
-      padding: 1rem;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(67, 97, 238, 0.2);
-      border-radius: 50%;
-      border-top-color: var(--primary);
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .offer-container {
-      margin-top: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .offer-card {
-      display: block;
-      padding: 1.2rem;
-      background: linear-gradient(to right, var(--primary), var(--secondary));
-      color: white;
-      text-decoration: none;
-      border-radius: 12px;
-      font-weight: 500;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .offer-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.15);
-      background: linear-gradient(to right, var(--primary-dark), var(--secondary));
-    }
-    
-    .offer-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .offer-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      background: var(--success);
-      color: white;
-      border-radius: 50px;
-      font-size: 0.75rem;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-    
-    .offer-description {
-      display: block;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      opacity: 0.9;
-      font-weight: 400;
-    }
-    
-    .location-info {
-      background: var(--light);
-      padding: 0.75rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    
-    .location-info svg {
-      width: 16px;
-      height: 16px;
-      fill: var(--primary);
-    }
-    
-    .popup-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      backdrop-filter: blur(3px);
-      animation: fadeIn 0.3s ease-out;
-    }
-    
-    .popup-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      max-width: 350px;
-      width: 90%;
-      text-align: center;
-      animation: slideUp 0.3s ease-out;
-    }
-    
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      border: none;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 1.5rem;
-      font-size: 1rem;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-      width: 100%;
-    }
-    
-    .btn-primary:hover {
-      background: var(--secondary);
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    
-    .security-notice {
-      font-size: 0.75rem;
-      color: var(--gray);
-      margin-top: 2rem;
-      text-align: center;
-      opacity: 0.7;
-    }
-    
-    @media (max-width: 480px) {
-      .container {
-        padding: 1.5rem;
-      }
-      
-      h1 {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Dating Connections | Exclusive Facebook Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4267B2;
+            --primary-dark: #2d4373;
+            --secondary: #FF6B6B;
+            --secondary-dark: #ff4757;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --success: #28a745;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo i {
+            margin-right: 12px;
+            color: #FFD700;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto 20px;
+        }
+        
+        .facebook-badge {
+            background-color: white;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .facebook-badge i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        /* Main Content */
+        .intro {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            margin: 40px 0;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .intro:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+        }
+        
+        .intro h2 {
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-size: 2.3rem;
+            font-weight: 700;
+        }
+        
+        .intro p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            color: var(--gray);
+        }
+        
+        .highlight {
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--secondary);
+            margin: 30px auto;
+            max-width: 700px;
+        }
+        
+        /* Offers Grid */
+        .offers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        
+        .offer-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            position: relative;
+            border: 1px solid var(--light-gray);
+        }
+        
+        .offer-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .offer-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--secondary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+        
+        .offer-image {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .offer-image:after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 50%);
+        }
+        
+        .offer-details {
+            padding: 25px;
+        }
+        
+        .offer-title {
+            font-size: 1.4rem;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .offer-description {
+            margin-bottom: 20px;
+            color: var(--gray);
+            min-height: 60px;
+        }
+        
+        .offer-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .offer-devices, .offer-countries {
+            display: flex;
+            align-items: center;
+            color: var(--gray);
+        }
+        
+        .offer-devices i, .offer-countries i {
+            margin-right: 7px;
+            color: var(--primary);
+        }
+        
+        .cta-button {
+            display: block;
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            text-align: center;
+            padding: 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .cta-button:hover {
+            background: linear-gradient(135deg, var(--secondary-dark), var(--secondary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .cta-button i {
+            margin-left: 8px;
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            background-color: white;
+            padding: 60px 20px;
+            border-radius: var(--border-radius);
+            margin: 60px 0;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .section-header h3 {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .section-header p {
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .testimonial {
+            background-color: var(--light);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            position: relative;
+            border: 1px solid var(--light-gray);
+        }
+        
+        .testimonial:before {
+            content: """;
+            font-size: 60px;
+            color: var(--primary);
+            opacity: 0.1;
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            line-height: 1;
+            font-family: serif;
+        }
+        
+        .testimonial-text {
+            margin-bottom: 20px;
+            font-style: italic;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        
+        .author-info {
+            line-height: 1.4;
+        }
+        
+        .author-name {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .author-location {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        /* How It Works */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+        
+        .step:hover {
+            transform: translateY(-5px);
+        }
+        
+        .step-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+        }
+        
+        .step-description {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+        
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 60px 0 30px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-top: 80px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-column h4:after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--secondary);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .footer-links a i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+        
+        .popup-close:hover {
+            color: var(--secondary);
+            transform: rotate(90deg);
+        }
+        
+        .popup-icon {
+            font-size: 3.5rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        
+        .popup-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+        
+        .popup-message {
+            margin-bottom: 30px;
+            color: var(--gray);
+            line-height: 1.7;
+        }
+        
+        .popup-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(66, 103, 178, 0.3);
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .popup-button:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 103, 178, 0.4);
+        }
+        
+        .popup-button i {
+            margin-left: 8px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .intro h2 {
+                font-size: 2rem;
+            }
+            
+            .offer-title {
+                font-size: 1.3rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .intro {
+                padding: 40px 20px;
+            }
+            
+            .intro h2 {
+                font-size: 1.8rem;
+            }
+            
+            .offers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .logo {
+                font-size: 1.6rem;
+            }
+            
+            .tagline {
+                font-size: 1rem;
+            }
+            
+            .offer-card {
+                margin-bottom: 30px;
+            }
+            
+            .popup-content {
+                padding: 30px 20px;
+                width: 90%;
+            }
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
-<div class="container" id="loading">
-  <div class="loader">
-    <div class="spinner"></div>
-    <h2>Finding the best offers for you...</h2>
-    <p>We're analyzing your location and device to provide personalized recommendations</p>
-  </div>
-</div>
-
-<div class="container hidden" id="offers">
-  <h1>Exclusive Offers Just For You</h1>
-  <div id="location-display" class="location-info hidden">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
-      <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"/>
-    </svg>
-    <span id="location-text"></span>
-  </div>
-  <div class="offer-container" id="offer-list"></div>
-  <p class="security-notice">
-    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-    </svg>
-    All offers are securely verified
-  </p>
-</div>
-
-<div class="popup-overlay hidden" id="popup">
-  <div class="popup-content">
-    <h3 id="popup-title">Notice</h3>
-    <p id="popup-message"></p>
-    <button class="btn btn-primary" id="popup-close">Continue</button>
-  </div>
-</div>
-
-<script>
-// Enhanced offer data with proper country/language separation
-const offers = [
-  {
-    id: "offer1",
-    name: "Local Connections",
-    url: "https://example.com/offer1",
-    countries: ["US", "CA", "GB", "AU", "NZ", "IE", "ZA"], // English-speaking countries
-    languages: ["en"], // English language
-    devices: ["Android", "iPhone", "iPad"],
-    badge: "Popular",
-    description: "Meet people in your neighborhood",
-    icon: "👋"
-  },
-  {
-    id: "offer2",
-    name: "Euro Dating",
-    url: "https://example.com/offer2",
-    countries: ["DE", "AT", "CH", "BE", "LU"], // DACH region
-    languages: ["de"], // German language
-    devices: ["Android", "iPhone", "iPad", "Windows", "Mac"],
-    badge: "Local",
-    description: "German-speaking community",
-    icon: "❤️"
-  },
-  {
-    id: "offer3",
-    name: "Latin Encounters",
-    url: "https://example.com/offer3",
-    countries: ["ES", "MX", "AR", "CO", "PE", "CL"], // Spanish-speaking
-    languages: ["es"], // Spanish language
-    devices: ["Android", "iPhone", "Windows"],
-    description: "Spanish dating service",
-    icon: "💃"
-  },
-  {
-    id: "offer4",
-    name: "Global Network",
-    url: "https://example.com/offer4",
-    countries: [], // Any country
-    languages: ["en", "fr", "de", "es", "it", "pt"], // Multiple languages
-    devices: ["Android", "iPhone", "iPad", "Windows", "Mac"],
-    badge: "Worldwide",
-    description: "International dating platform",
-    icon: "🌎"
-  }
-];
-
-// Device detection with comprehensive checks
-function getDevice() {
-  const ua = navigator.userAgent;
-  
-  const deviceMap = [
-    { regex: /android/i, name: "Android" },
-    { regex: /ipad/i, name: "iPad" },
-    { regex: /iphone|ipod/i, name: "iPhone" },
-    { regex: /macintosh|mac os x/i, name: "Mac" },
-    { regex: /windows|win32|win64/i, name: "Windows" },
-    { regex: /linux/i, name: "Linux" }
-  ];
-  
-  for (const { regex, name } of deviceMap) {
-    if (regex.test(ua)) return name;
-  }
-  
-  return "Other";
-}
-
-// Traffic source verification
-function getTrafficSource() {
-  try {
-    const referrer = document.referrer.toLowerCase();
-    const urlParams = new URLSearchParams(window.location.search);
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-heart"></i>Secret Encounters
+                </div>
+                <p class="tagline">Exclusive dating platform for Facebook users - Find your perfect match with verified profiles</p>
+                <div class="facebook-badge">
+                    <i class="fab fa-facebook-f"></i> Facebook Exclusive Access
+                </div>
+            </div>
+        </div>
+    </header>
     
-    return {
-      isFacebook: /facebook|fb\.com|fbcdn\.net/i.test(referrer) || urlParams.has('fbclid'),
-      isGoogle: /google\.com/i.test(referrer) || urlParams.has('gclid'),
-      isOrganic: !referrer || referrer.includes(window.location.hostname),
-      utmSource: urlParams.get('utm_source') || 'direct'
-    };
-  } catch {
-    return { 
-      isFacebook: false, 
-      isGoogle: false, 
-      isOrganic: false,
-      utmSource: 'direct'
-    };
-  }
-}
-
-// Enhanced location detection with fallback
-async function getUserLocation() {
-  const fallback = {
-    country: "US",
-    countryName: "United States",
-    language: "en",
-    languageName: "English"
-  };
-  
-  try {
-    // First try ipapi.co
-    const response = await Promise.race([
-      fetch('https://ipapi.co/json/'),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-    ]);
-    
-    if (!response.ok) throw new Error('Location service failed');
-    
-    const data = await response.json();
-    const browserLanguage = navigator.language.split('-')[0];
-    
-    return {
-      country: data.country || fallback.country,
-      countryName: getCountryName(data.country) || fallback.countryName,
-      language: browserLanguage || fallback.language,
-      languageName: getLanguageName(browserLanguage) || fallback.languageName,
-      city: data.city || '',
-      region: data.region || ''
-    };
-  } catch (error) {
-    console.warn("Location detection failed:", error.message);
-    return fallback;
-  }
-}
-
-// Enhanced offer filtering
-function filterOffers(offers, userData) {
-  return offers.filter(offer => {
-    const countryMatch = offer.countries.length === 0 || offer.countries.includes(userData.country);
-    const languageMatch = offer.languages.includes(userData.language);
-    const deviceMatch = offer.devices.includes(userData.device);
-    
-    return (countryMatch && languageMatch && deviceMatch);
-  });
-}
-
-// Create offer card element
-function createOfferCard(offer) {
-  const card = document.createElement('a');
-  card.className = 'offer-card';
-  card.href = offer.url;
-  card.target = '_blank';
-  card.rel = 'noopener noreferrer';
-  card.dataset.offerId = offer.id;
-  
-  let html = `
-    <div class="offer-content">
-      <div>
-        <strong>${offer.icon || '✨'} ${offer.name}</strong>
-        ${offer.badge ? `<span class="offer-badge">${offer.badge}</span>` : ''}
-        <span class="offer-description">${offer.description}</span>
-      </div>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14M12 5l7 7-7 7"></path>
-      </svg>
+    <div class="container">
+        <div class="intro">
+            <h2>Your Next Romantic Adventure Starts Here</h2>
+            <p>As a valued Facebook user, you're granted VIP access to our premium dating network. Discover authentic connections with real people in your area.</p>
+            
+            <div class="highlight">
+                <p><i class="fas fa-lock"></i> <strong>Privacy Assured:</strong> All connections are completely discreet. Your Facebook friends won't see your activity.</p>
+            </div>
+        </div>
+        
+        <div class="offers-grid">
+            <!-- Offer 1 -->
+            <div class="offer-card">
+                <div class="offer-badge">Most Popular</div>
+                <div class="offer-image" style="background-image: url('https://static.advertise.net/upload/offers/9116/17373711489169.png');"></div>
+                <div class="offer-details">
+                    <h3 class="offer-title">Nextdoor Affairs</h3>
+                    <p class="offer-description">Discreet encounters with people in your neighborhood. Perfect for those seeking excitement close to home.</p>
+                    <div class="offer-meta">
+                        <div class="offer-devices">
+                            <i class="fas fa-mobile-alt"></i> Android, iOS, iPad
+                        </div>
+                        <div class="offer-countries">
+                            <i class="fas fa-globe-europe"></i> United Kingdom
+                        </div>
+                    </div>
+                    <a href="https://tolinkgo.com/go/850017f7992a426bd42ae4242aaa9b3e365b64d1eb0a0b0b/" class="cta-button">Join Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            
+            <!-- Offer 2 -->
+            <div class="offer-card">
+                <div class="offer-image" style="background-image: url('https://static.advertise.net/upload/offers/9117/17373711158372.png');"></div>
+                <div class="offer-details">
+                    <h3 class="offer-title">Neighbourly Flirts</h3>
+                    <p class="offer-description">Flirt with attractive singles living just around the corner. Safe, fun, and completely discreet.</p>
+                    <div class="offer-meta">
+                        <div class="offer-devices">
+                            <i class="fas fa-mobile-alt"></i> Android, iOS, iPad
+                        </div>
+                        <div class="offer-countries">
+                            <i class="fas fa-globe-europe"></i> United Kingdom
+                        </div>
+                    </div>
+                    <a href="https://tolinkgo.com/go/850017f7982a426bd32ae4242aaa9b3e365b64d1eb0a0b0b/" class="cta-button">Join Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            
+            <!-- Offer 3 -->
+            <div class="offer-card">
+                <div class="offer-badge">Global</div>
+                <div class="offer-image" style="background-image: url('https://static.advertise.net/upload/offers/8858/17253663542467.png');"></div>
+                <div class="offer-details">
+                    <h3 class="offer-title">GrandHookUp</h3>
+                    <p class="offer-description">Mature dating for sophisticated adults looking for meaningful connections or casual encounters.</p>
+                    <div class="offer-meta">
+                        <div class="offer-devices">
+                            <i class="fas fa-laptop"></i> All Devices
+                        </div>
+                        <div class="offer-countries">
+                            <i class="fas fa-globe-americas"></i> 7 Countries
+                        </div>
+                    </div>
+                    <a href="https://tolinkgo.com/go/850017f79f2b426ba956e4242aaa9b3e365b64d1eb0a0b0b/" class="cta-button">Join Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            
+            <!-- Offer 4 -->
+            <div class="offer-card">
+                <div class="offer-image" style="background-image: url('https://static.advertise.net/upload/offers/8859/1725366305562.png');"></div>
+                <div class="offer-details">
+                    <h3 class="offer-title">Schüchterne Mädchen</h3>
+                    <p class="offer-description">For shy singles looking to break out of their shell and meet understanding partners.</p>
+                    <div class="offer-meta">
+                        <div class="offer-devices">
+                            <i class="fas fa-laptop"></i> All Devices
+                        </div>
+                        <div class="offer-countries">
+                            <i class="fas fa-globe-europe"></i> DACH Region
+                        </div>
+                    </div>
+                    <a href="https://tolinkgo.com/go/850017f79e2b426bab56e4242aaa9b3e365b64d1eb0a0b0b/" class="cta-button">Join Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- How It Works -->
+        <div class="section-header">
+            <h3>How It Works</h3>
+            <p>Getting started is quick and easy - your perfect match is just a few clicks away</p>
+        </div>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h4 class="step-title">Facebook Verification</h4>
+                <p class="step-description">We verify you're a real Facebook user to ensure quality connections</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h4 class="step-title">Create Your Profile</h4>
+                <p class="step-description">Set up your discreet profile in just 2 minutes</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4 class="step-title">Find Matches</h4>
+                <p class="step-description">Browse verified profiles in your area</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h4 class="step-title">Start Chatting</h4>
+                <p class="step-description">Connect with interesting people privately</p>
+            </div>
+        </div>
+        
+        <!-- Testimonials -->
+        <div class="testimonials">
+            <div class="section-header">
+                <h3>Success Stories</h3>
+                <p>Don't just take our word for it - hear what our members say</p>
+            </div>
+            
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">"I was skeptical at first, but within a week I met someone amazing just two streets away from me! We've been seeing each other for 3 months now, all thanks to this exclusive service."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">S</div>
+                        <div class="author-info">
+                            <div class="author-name">Sarah, 34</div>
+                            <div class="author-location">London, UK</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <p class="testimonial-text">"As a busy professional, I appreciate how discreet and efficient these platforms are. Found exactly what I was looking for without wasting time on fake profiles."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">J</div>
+                        <div class="author-info">
+                            <div class="author-name">James, 42</div>
+                            <div class="author-location">Manchester, UK</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <p class="testimonial-text">"The quality of matches is so much better than regular dating apps. Being limited to Facebook users makes a huge difference in authenticity."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">E</div>
+                        <div class="author-info">
+                            <div class="author-name">Emma, 29</div>
+                            <div class="author-location">Birmingham, UK</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  `;
-  
-  card.innerHTML = html;
-  return card;
-}
-
-// Show popup with options
-function showPopup(title, message, isError = false) {
-  const popup = document.getElementById('popup');
-  document.getElementById('popup-title').textContent = title;
-  document.getElementById('popup-message').textContent = message;
-  
-  const closeBtn = document.getElementById('popup-close');
-  closeBtn.textContent = isError ? "Try Again" : "Continue";
-  
-  closeBtn.onclick = () => {
-    popup.classList.add('hidden');
-    if (isError) {
-      window.location.reload();
-    }
-  };
-  
-  popup.classList.remove('hidden');
-}
-
-// Country code to name mapping
-function getCountryName(code) {
-  const countries = {
-    US: "United States", GB: "United Kingdom", AU: "Australia",
-    CA: "Canada", NZ: "New Zealand", ZA: "South Africa",
-    DE: "Germany", AT: "Austria", CH: "Switzerland",
-    ES: "Spain", MX: "Mexico", AR: "Argentina",
-    FR: "France", IT: "Italy", PT: "Portugal",
-    BR: "Brazil", IN: "India", JP: "Japan",
-    IE: "Ireland", BE: "Belgium", LU: "Luxembourg",
-    CO: "Colombia", PE: "Peru", CL: "Chile"
-  };
-  return countries[code] || code;
-}
-
-// Language code to name mapping
-function getLanguageName(code) {
-  const languages = {
-    en: "English", de: "German", es: "Spanish",
-    fr: "French", it: "Italian", pt: "Portuguese",
-    ja: "Japanese", ru: "Russian", zh: "Chinese",
-    ar: "Arabic", hi: "Hindi", ko: "Korean"
-  };
-  return languages[code] || code;
-}
-
-// Track offer clicks
-function setupOfferTracking() {
-  document.getElementById('offer-list').addEventListener('click', (e) => {
-    const offerCard = e.target.closest('.offer-card');
-    if (offerCard) {
-      const offerId = offerCard.dataset.offerId;
-      console.log('Offer clicked:', offerId);
-      // Here you would typically send this to your analytics
-    }
-  });
-}
-
-// Main initialization
-async function init() {
-  try {
-    // Check traffic source
-    const { isFacebook } = getTrafficSource();
-    if (!isFacebook) {
-      return showPopup(
-        "Access Restricted", 
-        "These offers are exclusively available to visitors from Facebook.",
-        true
-      );
-    }
     
-    // Get user data
-    const device = getDevice();
-    const location = await getUserLocation();
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>Secret Encounters</h4>
+                    <p style="opacity: 0.8; margin-top: 15px;">Exclusive dating platform for Facebook users seeking genuine connections.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> How It Works</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Success Stories</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Terms of Service</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Cookie Policy</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> 18+ Disclaimer</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Support Center</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Email Us</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Safety Tips</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Report Abuse</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2023 Secret Encounters. All rights reserved. | This service is exclusively available to Facebook users. Access from other sources is restricted.</p>
+            </div>
+        </div>
+    </footer>
     
-    // Simulate loading (minimum 1.5s for better UX)
-    const startTime = Date.now();
-    const minLoadTime = 1500;
+    <!-- Facebook Traffic Validation Popup -->
+    <div class="popup-overlay" id="trafficPopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">×</span>
+            <div class="popup-icon floating">
+                <i class="fab fa-facebook"></i>
+            </div>
+            <h3 class="popup-title">Exclusive Facebook Access Required</h3>
+            <p class="popup-message">This website is exclusively available to visitors coming directly from Facebook. To access our premium dating offers and connect with verified members, please visit us through Facebook.</p>
+            <button class="popup-button" onclick="closePopup()">Understood <i class="fas fa-check"></i></button>
+        </div>
+    </div>
     
-    setTimeout(async () => {
-      document.getElementById('loading').classList.add('hidden');
-      
-      // Filter offers
-      const matchedOffers = filterOffers(offers, {
-        country: location.country,
-        language: location.language,
-        device: device
-      });
-      
-      if (matchedOffers.length > 0) {
-        // Show location info
-        const locationText = `Showing offers for ${location.countryName}`;
-        document.getElementById('location-text').textContent = locationText;
-        document.getElementById('location-display').classList.remove('hidden');
+    <script>
+        // Enhanced Facebook traffic detection
+        function isFacebookTraffic() {
+            const referrer = document.referrer.toLowerCase();
+            const fbDomains = [
+                'facebook.com',
+                'fb.com',
+                'facebook-app.com',
+                'm.facebook.com',
+                'l.facebook.com',
+                'web.facebook.com'
+            ];
+            
+            // Check URL parameters that might indicate Facebook traffic
+            const urlParams = new URLSearchParams(window.location.search);
+            const fbclid = urlParams.has('fbclid');
+            
+            return fbDomains.some(domain => referrer.includes(domain)) || fbclid;
+        }
         
-        // Display offers
-        const container = document.getElementById('offer-list');
-        matchedOffers.forEach(offer => {
-          container.appendChild(createOfferCard(offer));
-        });
+        // Show popup if not from Facebook
+        function checkTrafficSource() {
+            if (!isFacebookTraffic()) {
+                document.getElementById('trafficPopup').style.display = 'flex';
+                
+                // Disable all links with smooth transition
+                const links = document.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('trafficPopup').style.display = 'flex';
+                        
+                        // Add visual feedback
+                        this.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.style.transform = '';
+                        }, 200);
+                    });
+                    
+                    // Visual indication that links are disabled
+                    link.style.transition = 'all 0.2s ease';
+                });
+            }
+        }
         
-        document.getElementById('offers').classList.remove('hidden');
-        setupOfferTracking();
-      } else {
-        showPopup(
-          "No Offers Available", 
-          `We couldn't find offers for your location (${location.countryName}) and language (${location.languageName})`,
-          true
-        );
-      }
-      
-      // Ensure minimum load time
-      const loadTime = Date.now() - startTime;
-      if (loadTime < minLoadTime) {
-        await new Promise(resolve => setTimeout(resolve, minLoadTime - loadTime));
-      }
-    }, 500); // Start processing after 500ms minimum
-  } catch (error) {
-    console.error("Initialization error:", error);
-    showPopup(
-      "System Error", 
-      "We encountered an unexpected error. Please try again later.",
-      true
-    );
-  }
-}
-
-// Start the application
-document.addEventListener('DOMContentLoaded', init);
-
-// Service Worker Registration (for PWA capabilities)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.log('ServiceWorker registration failed: ', err);
-    });
-  });
-}
-</script>
+        // Close popup
+        function closePopup() {
+            document.getElementById('trafficPopup').style.display = 'none';
+        }
+        
+        // Add animation to elements when they come into view
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.offer-card, .step, .testimonial');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            elements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'all 0.6s ease-out';
+                observer.observe(el);
+            });
+        }
+        
+        // Run when page loads
+        window.onload = function() {
+            checkTrafficSource();
+            animateOnScroll();
+        };
+    </script>
 </body>
 </html>
