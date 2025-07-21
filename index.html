@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exclusive Offers | Personalized Recommendations</title>
+  <meta name="description" content="Discover personalized offers tailored for your location and device">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      line-height: 1.6;
+      color: var(--dark);
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hidden { 
+      display: none !important; 
+    }
+    
+    h1, h2, h3 {
+      color: var(--dark);
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+    
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.2rem; }
+    
+    p {
+      margin-bottom: 1rem;
+      color: var(--gray);
+    }
+    
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+      padding: 1rem;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(67, 97, 238, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .offer-container {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .offer-card {
+      display: block;
+      padding: 1.2rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .offer-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+      background: linear-gradient(to right, var(--primary-dark), var(--secondary));
+    }
+    
+    .offer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .offer-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: var(--success);
+      color: white;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    
+    .offer-description {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+    
+    .location-info {
+      background: var(--light);
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .location-info svg {
+      width: 16px;
+      height: 16px;
+      fill: var(--primary);
+    }
+    
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .popup-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 350px;
+      width: 90%;
+      text-align: center;
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+      font-size: 1rem;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+    }
+    
+    .btn-primary:hover {
+      background: var(--secondary);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .security-notice {
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 2rem;
+      text-align: center;
+      opacity: 0.7;
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container" id="loading">
+  <div class="loader">
+    <div class="spinner"></div>
+    <h2>Finding the best offers for you...</h2>
+    <p>We're analyzing your location and device to provide personalized recommendations</p>
+  </div>
+</div>
+
+<div class="container hidden" id="offers">
+  <h1>Exclusive Offers Just For You</h1>
+  <div id="location-display" class="location-info hidden">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+      <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"/>
+    </svg>
+    <span id="location-text"></span>
+  </div>
+  <div class="offer-container" id="offer-list"></div>
+  <p class="security-notice">
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+    All offers are securely verified
+  </p>
+</div>
+
+<div class="popup-overlay hidden" id="popup">
+  <div class="popup-content">
+    <h3 id="popup-title">Notice</h3>
+    <p id="popup-message"></p>
+    <button class="btn btn-primary" id="popup-close">Continue</button>
+  </div>
+</div>
+
+<script>
+// Enhanced offer data with proper country/language separation
+const offers = [
+  {
+    id: "offer1",
+    name: "Local Connections",
+    url: "https://example.com/offer1",
+    countries: ["US", "CA", "GB", "AU", "NZ", "IE", "ZA"], // English-speaking countries
+    languages: ["en"], // English language
+    devices: ["Android", "iPhone", "iPad"],
+    badge: "Popular",
+    description: "Meet people in your neighborhood",
+    icon: "👋"
+  },
+  {
+    id: "offer2",
+    name: "Euro Dating",
+    url: "https://example.com/offer2",
+    countries: ["DE", "AT", "CH", "BE", "LU"], // DACH region
+    languages: ["de"], // German language
+    devices: ["Android", "iPhone", "iPad", "Windows", "Mac"],
+    badge: "Local",
+    description: "German-speaking community",
+    icon: "❤️"
+  },
+  {
+    id: "offer3",
+    name: "Latin Encounters",
+    url: "https://example.com/offer3",
+    countries: ["ES", "MX", "AR", "CO", "PE", "CL"], // Spanish-speaking
+    languages: ["es"], // Spanish language
+    devices: ["Android", "iPhone", "Windows"],
+    description: "Spanish dating service",
+    icon: "💃"
+  },
+  {
+    id: "offer4",
+    name: "Global Network",
+    url: "https://example.com/offer4",
+    countries: [], // Any country
+    languages: ["en", "fr", "de", "es", "it", "pt"], // Multiple languages
+    devices: ["Android", "iPhone", "iPad", "Windows", "Mac"],
+    badge: "Worldwide",
+    description: "International dating platform",
+    icon: "🌎"
+  }
+];
+
+// Device detection with comprehensive checks
+function getDevice() {
+  const ua = navigator.userAgent;
+  
+  const deviceMap = [
+    { regex: /android/i, name: "Android" },
+    { regex: /ipad/i, name: "iPad" },
+    { regex: /iphone|ipod/i, name: "iPhone" },
+    { regex: /macintosh|mac os x/i, name: "Mac" },
+    { regex: /windows|win32|win64/i, name: "Windows" },
+    { regex: /linux/i, name: "Linux" }
+  ];
+  
+  for (const { regex, name } of deviceMap) {
+    if (regex.test(ua)) return name;
+  }
+  
+  return "Other";
+}
+
+// Traffic source verification
+function getTrafficSource() {
+  try {
+    const referrer = document.referrer.toLowerCase();
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    return {
+      isFacebook: /facebook|fb\.com|fbcdn\.net/i.test(referrer) || urlParams.has('fbclid'),
+      isGoogle: /google\.com/i.test(referrer) || urlParams.has('gclid'),
+      isOrganic: !referrer || referrer.includes(window.location.hostname),
+      utmSource: urlParams.get('utm_source') || 'direct'
+    };
+  } catch {
+    return { 
+      isFacebook: false, 
+      isGoogle: false, 
+      isOrganic: false,
+      utmSource: 'direct'
+    };
+  }
+}
+
+// Enhanced location detection with fallback
+async function getUserLocation() {
+  const fallback = {
+    country: "US",
+    countryName: "United States",
+    language: "en",
+    languageName: "English"
+  };
+  
+  try {
+    // First try ipapi.co
+    const response = await Promise.race([
+      fetch('https://ipapi.co/json/'),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+    ]);
+    
+    if (!response.ok) throw new Error('Location service failed');
+    
+    const data = await response.json();
+    const browserLanguage = navigator.language.split('-')[0];
+    
+    return {
+      country: data.country || fallback.country,
+      countryName: getCountryName(data.country) || fallback.countryName,
+      language: browserLanguage || fallback.language,
+      languageName: getLanguageName(browserLanguage) || fallback.languageName,
+      city: data.city || '',
+      region: data.region || ''
+    };
+  } catch (error) {
+    console.warn("Location detection failed:", error.message);
+    return fallback;
+  }
+}
+
+// Enhanced offer filtering
+function filterOffers(offers, userData) {
+  return offers.filter(offer => {
+    const countryMatch = offer.countries.length === 0 || offer.countries.includes(userData.country);
+    const languageMatch = offer.languages.includes(userData.language);
+    const deviceMatch = offer.devices.includes(userData.device);
+    
+    return (countryMatch && languageMatch && deviceMatch);
+  });
+}
+
+// Create offer card element
+function createOfferCard(offer) {
+  const card = document.createElement('a');
+  card.className = 'offer-card';
+  card.href = offer.url;
+  card.target = '_blank';
+  card.rel = 'noopener noreferrer';
+  card.dataset.offerId = offer.id;
+  
+  let html = `
+    <div class="offer-content">
+      <div>
+        <strong>${offer.icon || '✨'} ${offer.name}</strong>
+        ${offer.badge ? `<span class="offer-badge">${offer.badge}</span>` : ''}
+        <span class="offer-description">${offer.description}</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"></path>
+      </svg>
+    </div>
+  `;
+  
+  card.innerHTML = html;
+  return card;
+}
+
+// Show popup with options
+function showPopup(title, message, isError = false) {
+  const popup = document.getElementById('popup');
+  document.getElementById('popup-title').textContent = title;
+  document.getElementById('popup-message').textContent = message;
+  
+  const closeBtn = document.getElementById('popup-close');
+  closeBtn.textContent = isError ? "Try Again" : "Continue";
+  
+  closeBtn.onclick = () => {
+    popup.classList.add('hidden');
+    if (isError) {
+      window.location.reload();
+    }
+  };
+  
+  popup.classList.remove('hidden');
+}
+
+// Country code to name mapping
+function getCountryName(code) {
+  const countries = {
+    US: "United States", GB: "United Kingdom", AU: "Australia",
+    CA: "Canada", NZ: "New Zealand", ZA: "South Africa",
+    DE: "Germany", AT: "Austria", CH: "Switzerland",
+    ES: "Spain", MX: "Mexico", AR: "Argentina",
+    FR: "France", IT: "Italy", PT: "Portugal",
+    BR: "Brazil", IN: "India", JP: "Japan",
+    IE: "Ireland", BE: "Belgium", LU: "Luxembourg",
+    CO: "Colombia", PE: "Peru", CL: "Chile"
+  };
+  return countries[code] || code;
+}
+
+// Language code to name mapping
+function getLanguageName(code) {
+  const languages = {
+    en: "English", de: "German", es: "Spanish",
+    fr: "French", it: "Italian", pt: "Portuguese",
+    ja: "Japanese", ru: "Russian", zh: "Chinese",
+    ar: "Arabic", hi: "Hindi", ko: "Korean"
+  };
+  return languages[code] || code;
+}
+
+// Track offer clicks
+function setupOfferTracking() {
+  document.getElementById('offer-list').addEventListener('click', (e) => {
+    const offerCard = e.target.closest('.offer-card');
+    if (offerCard) {
+      const offerId = offerCard.dataset.offerId;
+      console.log('Offer clicked:', offerId);
+      // Here you would typically send this to your analytics
+    }
+  });
+}
+
+// Main initialization
+async function init() {
+  try {
+    // Check traffic source
+    const { isFacebook } = getTrafficSource();
+    if (!isFacebook) {
+      return showPopup(
+        "Access Restricted", 
+        "These offers are exclusively available to visitors from Facebook.",
+        true
+      );
+    }
+    
+    // Get user data
+    const device = getDevice();
+    const location = await getUserLocation();
+    
+    // Simulate loading (minimum 1.5s for better UX)
+    const startTime = Date.now();
+    const minLoadTime = 1500;
+    
+    setTimeout(async () => {
+      document.getElementById('loading').classList.add('hidden');
+      
+      // Filter offers
+      const matchedOffers = filterOffers(offers, {
+        country: location.country,
+        language: location.language,
+        device: device
+      });
+      
+      if (matchedOffers.length > 0) {
+        // Show location info
+        const locationText = `Showing offers for ${location.countryName}`;
+        document.getElementById('location-text').textContent = locationText;
+        document.getElementById('location-display').classList.remove('hidden');
+        
+        // Display offers
+        const container = document.getElementById('offer-list');
+        matchedOffers.forEach(offer => {
+          container.appendChild(createOfferCard(offer));
+        });
+        
+        document.getElementById('offers').classList.remove('hidden');
+        setupOfferTracking();
+      } else {
+        showPopup(
+          "No Offers Available", 
+          `We couldn't find offers for your location (${location.countryName}) and language (${location.languageName})`,
+          true
+        );
+      }
+      
+      // Ensure minimum load time
+      const loadTime = Date.now() - startTime;
+      if (loadTime < minLoadTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadTime - loadTime));
+      }
+    }, 500); // Start processing after 500ms minimum
+  } catch (error) {
+    console.error("Initialization error:", error);
+    showPopup(
+      "System Error", 
+      "We encountered an unexpected error. Please try again later.",
+      true
+    );
+  }
+}
+
+// Start the application
+document.addEventListener('DOMContentLoaded', init);
+
+// Service Worker Registration (for PWA capabilities)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
